@@ -1,0 +1,25 @@
+version: "3.10"
+
+services:
+  pg:
+    image: postgres
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  server:
+    build: ./sql_app/
+    volumes:
+      - ./sql_app:/code/app
+    ports:
+      - "8080:80"
+    depends_on:
+      pg:
+        condition: service_healthy
