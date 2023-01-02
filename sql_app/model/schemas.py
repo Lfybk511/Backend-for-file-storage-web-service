@@ -15,10 +15,10 @@ class ItemImport(BaseModel):
     class Config:
         schema_extra = {
             "example": {
-                "id": "элемент_1_4",
+                "id": "sfh-safsw-23d32-32df",
                 "url": "/file/url1",
-                "parentId": "элемент_1_1",
-                "size": 234,
+                "parentId": "fd3f2-dsf2-dsf2fd",
+                "size": 256,
                 "type": "FILE"
             }
         }
@@ -70,8 +70,6 @@ class ItemImportRequest(BaseModel):
 
     @validator('update_date', pre=True)
     def time_validate(cls, v):
-        print(v)
-        print(iso8601.parse_date(v))
         return iso8601.parse_date(v)
 
     class Config:
@@ -122,7 +120,7 @@ class ItemImportRequest(BaseModel):
                       "size": 10
                     }
                   ],
-                  "updateDate": "2022-03-02T12:00:00Z"
+                  "updateDate": "2022-12-02T12:00:00Z"
                 }
         }
 
@@ -140,5 +138,6 @@ class Error(BaseModel):
         }
 
 
+# Because we refer to the class within the class
 ItemGetNode.update_forward_refs()
 

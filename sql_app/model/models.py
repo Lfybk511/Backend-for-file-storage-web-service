@@ -18,6 +18,6 @@ class Item(Base):
     itemtype = Column(Enum(ItemType))
     url = Column(String(256), nullable=True)
 
+    # Convert class object to dictionary
     def indict(self) -> dict:
-        return {c.key: getattr(self, c.key)
-                for c in inspect(self).mapper.column_attrs}
+        return {c.key: getattr(self, c.key) for c in inspect(self).mapper.column_attrs}

@@ -14,10 +14,14 @@ def import_items(db: Session, items_request: schemas.ItemImportRequest):
 
         old_item = db.execute(sa.select(models.Item).where(models.Item.id == item.id))
         old_item = old_item.scalars().one_or_none()
+
+        # If the file size has changed
         if old_item is not None:
             size_div = item.size - old_item.size
         else:
             size_div = item.size
+
+        # Update date and size of parent folders
         while parent_id is not None:
             parent = db.execute(sa.select(models.Item).where(models.Item.id == parent_id))
             parent = parent.scalars().one_or_none()
@@ -35,6 +39,7 @@ def import_items(db: Session, items_request: schemas.ItemImportRequest):
             else:
                 break
 
+        # If such an object exists, update it
         if old_item is not None:
             if old_item.itemtype != item.itemtype:
                 db.rollback()
@@ -61,13 +66,16 @@ def get_items_by_id(db: Session, item_id: str):
 
 
 def get_nodes_by_model(db: Session, db_item: models.Item):
-    db_item_dict = db_item.indict()  # {key: value for (key, value) in db_item.items()}
+    db_item_dict = db_item.indict()  # {key: value for (key, value) in db_item_dict.items()}
     logging.debug(db_item_dict)
     item_node = schemas.ItemGetNode(**db_item_dict, children=None)
 
+    # If the element is a folder, then output its children
     if db_item.itemtype == "FILE":
         return item_node
     else:
+
+        # Outputting the children of a folder
         item_node.children = []
         children_objs = db.execute(sa.select(models.Item).where(models.Item.parent_id == db_item.id))
         children_objs = children_objs.scalars().all()
@@ -79,11 +87,9 @@ def get_nodes_by_model(db: Session, db_item: models.Item):
 
 
 def delete_item(db: Session, item_id: str, date: datetime):
-    """
-    Delete item by id. May raise ItemNotFoundError
-    """
     db_item = db.execute(sa.select(models.Item).where(models.Item.id == item_id))
     db_item = db_item.scalars().one_or_none()
+
     if db_item is not None:
         parent_id = db_item.parent_id
         child_size = delete_childs(db, item_id, 0)
@@ -91,6 +97,7 @@ def delete_item(db: Session, item_id: str, date: datetime):
         return JSONResponse(status_code=404,
                             content=jsonable_encoder(schemas.Error(code=404, message="Not find item for ID")))
 
+    # If the element exists, change the size and date of the parent folders
     while parent_id is not None:
         parent = db.execute(sa.select(models.Item).where(models.Item.id == parent_id))
         parent = parent.scalars().one_or_none()
@@ -104,6 +111,8 @@ def delete_item(db: Session, item_id: str, date: datetime):
 
 
 def delete_childs(db: Session, item_id: str, size_child: int):
+
+    # This function removes nested elements
     db_items = db.execute(sa.select(models.Item).where(models.Item.parent_id == item_id))
     db_items = db_items.scalars().all()
 

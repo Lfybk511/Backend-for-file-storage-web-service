@@ -61,7 +61,7 @@ def get_items(item_id: str, db: Session = Depends(get_db)):
                             404: {"description": "Элемент не найден.",
                                   "model": schemas.Error}
                         },)
-def delete_items(item_id: str, db: Session = Depends(get_db), date: str = Query(..., example="2022-05-28T21:12:01.516Z")):
+def delete_items(item_id: str, db: Session = Depends(get_db), date: str = Query(..., example="2023-01-02T14:14:06.516Z")):
     try:
         date = iso8601.parse_date(date)
     except ValueError:
